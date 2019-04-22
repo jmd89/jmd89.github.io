@@ -2,6 +2,7 @@ library(shiny)
 library(shinythemes)
 #setwd('~/Documents/jmd89.github.io/StudentLoan/')
 #source('websiteFunctions.R')
+options(scipen=999)
 
 # Initial values
 age = 24
@@ -9,8 +10,8 @@ salary = 30000
 deductions = 0
 loan = 30000
 loanInterest = 0
-startYear = 2015
-gradYear = 2018
+startYear = 2014
+gradYear = 2017
 savings = 0
 country = 'England/Wales'
 
@@ -18,42 +19,57 @@ country = 'England/Wales'
 
 ########## Functions
 # Estimate loan interest rate
-est_intRate <- function(startYear, salary, country){
+intRate_calc <- function(startYear, salary, country){
   if (startYear < 2012 | country == 'Scotland'){ # if Plan 1 loan
     return(1.75)
   }else{
-    if (salary >= 45000){
-      return(6.3)
+    if (salary >= 46305){
+      return(5.4)
     }else{
-      if (salary < 25000){
-        return(3.3)
+      if (salary < 25725){
+        return(2.4)
       }else{
-        return(3.3 + ((salary - 25000)/20000*3))
+        return(2.4 + ((salary - 25725)/20580 * 3)) # salary minus the threshold as a percentage of the 3% extra
       }
     }
   }
 }
 
-payments_calc <- function(salary, country, startYear){
+# Calculate payments
+payments_calc <- function(salaries, country, startYear){ #increases payments with salary increases
+  paymentList <- numeric()
   if (country == 'Scotland' | startYear < 2012){ # if Plan 1 loan
-    if (salary > 18935){
-      return(.09*(salary-18935))
-    }else{
-      return(0)
+    for (s in salaries){
+      if (s > 18935){
+        paymentList <- c(paymentList, .09*(s-18935))
+      }else{
+        paymentList <- c(paymentList, 0)
+      }
     }
   }else{
-    if (salary > 25725){
-      return(.09*(salary-25725))
-    }else{
-      return(0)
+    for (s in salaries){
+      if (s > 25725){
+        paymentList <- c(paymentList, .09*(s-25725))
+      }else{
+        paymentList <- c(paymentList, 0)
+      }
     }
   }
+  return(paymentList)
 }
 
-# Calculate the number of remaining years left to pay
-# nYears_calc <- function(gradYear){ # this isn't used?
-#   return(30 - (as.numeric(format(Sys.Date(), "%Y")) - gradYear))
-# }
+# Calculate salaries
+salaryIncreases <- function(salary, deductions, increase, nYears){
+  salaryList <- c(salary-deductions*12)
+  currentSalary <- salary
+  deduct <- deductions*12
+  for (i in 1:nYears){
+    deduct <- (1+increase/100)*(deduct)
+    currentSalary <- (1+increase/100)*(currentSalary)
+    salaryList <- c(salaryList, currentSalary-deduct)
+  }
+  return(salaryList)
+}
 
 paymentYears_calc <- function(startYear, gradYear, country, age){
   if (startYear < 2007 && country == 'England/Wales'){ # only 65+ forgiveness
@@ -75,13 +91,34 @@ paymentYears_calc <- function(startYear, gradYear, country, age){
 }
 
 # Calculate balances
-PAYEbalances_calc <- function(loan, salary, country, startYear, nYears, interest, lumpSum = 0){
-  payment <- payments_calc(salary, country, startYear)
+# PAYEbalances_calc <- function(loan, salaries, country, startYear, nYears, interest, lumpSum = 0){
+#   payments <- payments_calc(salaries, country, startYear)
+#   balances <- loan
+#   x <- loan - lumpSum
+#   for (i in 1:nYears){
+#     if (x > payments[i]){
+#       x <- (1+interest/100)*(x - payments[i])
+#       balances <- c(balances, x)
+#     }else{
+#       balances <- c(balances, 0)
+#       return(balances)
+#     }
+#   }
+#   return(balances)
+# }
+
+PAYEbalances_calc <- function(loan, salaries, country, startYear, nYears, interest, customInterest = 'No', lumpSum = 0){
+  payments <- payments_calc(salaries, country, startYear)
   balances <- numeric()
   x <- loan - lumpSum
   for (i in 1:nYears){
-    if (x > payment){
-      x <- (1+interest/100)*(x - payment)
+    if (x > payments[i]){
+      if (interest == 0 | customInterest == 'No'){
+        intRate <- intRate_calc(startYear, salaries[i], country)
+      }else{
+        intRate <- interest
+      }
+      x <- (1+intRate/100)*(x - payments[i])
       balances <- c(balances, x)
     }else{
       balances <- c(balances, 0)
@@ -91,19 +128,23 @@ PAYEbalances_calc <- function(loan, salary, country, startYear, nYears, interest
   return(balances)
 }
 
+
 # Calculate total paid
-PAYEpaid_calc <- function(loan, salary, country, startYear, nYears, interest, lumpSum = 0){
-  payment <- payments_calc(salary, country, startYear)
+PAYEpaid_calc <- function(loan, salaries, country, startYear, nYears, interest, customInterest = 'No', lumpSum = 0){
+  payments <- payments_calc(salaries, country, startYear)
   balances <- numeric()
   x <- loan - lumpSum
   paid <- 0
   for (i in 1:nYears){
-    if (x > payment){
-      x <- (1+interest/100)*(x - payment)
-      paid <- paid + payment
-      balances <- c(balances, x)
+    if (x > payments[i]){
+      if (interest == 0 | customInterest == 'No'){
+        intRate <- intRate_calc(startYear, salaries[i], country)
+      }else{
+        intRate <- interest
+      }
+      x <- (1+intRate/100)*(x - payments[i])
+      paid <- paid + payments[i]
     }else{
-      balances <- c(balances, 0)
       paid <- paid + x
       return(paid)
     }
@@ -121,6 +162,7 @@ runValidations <- function(x, text = TRUE){
       need(x$startYear < x$gradYear, paste('Graduation year must be after starting year.', sep = "\n")),
       need(x$salary, paste('Enter your annual salary. Do not type the £ symbol.', ' ', sep = "\n")),
       need(x$deductions, paste('Enter monthly salary deductions. Put zero (0) if  you do not have any deductions. Do not type the £ symbol.', ' ', sep = "\n")),
+      need(x$salaryIncrease, paste('Enter your expected annual salary increase as a percentage. Do not type the % symbol.')),
       need(x$loan, paste('Enter loan balance. Do not type the £ symbol.', ' ', sep = "\n")),
       need(x$loanInterest, paste('Enter loan interest rate. Put zero (0) and the calculator will estimate your interest rate based on the values given. Do not type the % symbol.', ' ', sep = "\n")),
       need(x$gradYear, paste('Enter your graduation year.', ' ', sep = "\n")),
@@ -133,6 +175,7 @@ runValidations <- function(x, text = TRUE){
       need(x$startYear < x$gradYear, paste(" ")),
       need(x$salary, " "),
       need(x$deductions, " "),
+      need(x$salaryIncrease, paste(' ')),
       need(x$loan, " "),
       need(x$loanInterest, " "),
       need(x$gradYear, " "),
@@ -181,18 +224,43 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                  label = "Current Student Loan Balance:",
                                  value = loan),
                     
-                    # Input: Interest Rate
-                    numericInput(inputId = "loanInterest",
-                                 label = "If you have been put on a non-standard interest rate enter it here, otherwise leave it as zero and it will be calculated using the details given above:",
-                                 value = loanInterest),
                     
+                    
+                    # Input: Interest Rate
+                    selectInput(inputId = 'customInterest',
+                                label = 'Have you been put on a non-standard interest rate (e.g. due to non payment while living abroad)?:',
+                                choices = c('Yes', 'No'),
+                                selected = 'No'),
+                    
+                    conditionalPanel(
+                      condition = "input.customInterest ==  'Yes'",
+                      numericInput(inputId = "loanInterest",
+                                   label = "Enter interest rate:",
+                                   value = loanInterest)
+                    ),
+                    
+                    # Input: Salary
                     numericInput(inputId = "salary",
                                  label = "Annual Salary (Before Tax):",
                                  value = salary),
+                    
                     # Deductions
                     numericInput(inputId = "deductions",
                                  label = "Monthly salary sacrifice deductions shown on your paycheque (e.g. pension payments, cycle to work scheme, etc.):",
                                  value = deductions),
+                    
+                    # Input: Salary increase percentage
+                    numericInput(inputId = "salaryIncrease",
+                                 label = "Enter your expected percentage annual payrise (your deductions will increase at the same rate):",
+                                 value = 2.0),
+                    
+                    conditionalPanel(
+                      condition = "input.salaryIncrease > 0",
+                      checkboxInput(inputId = "plotSalary",
+                                    label = "Plot your predicted salary increases?:",
+                                    value = TRUE,
+                                    width = '300px')
+                    ),
                     
                     # Input: Savings
                     numericInput(inputId = "savings",
@@ -212,7 +280,9 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                     htmlOutput("info"),
                     plotOutput("PAYEPlot"),
                     htmlOutput("PAYEPlotText"),
-                    htmlOutput("PAYEStats")
+                    htmlOutput("PAYEStats"),
+                    
+                    textOutput("testText")
                   )
                 )
 )
@@ -234,8 +304,8 @@ server <- function(input, output, session) {
   })
   
   loanInterest_calc <- eventReactive(input$generate,{
-    if (temp_loanInterest() == 0){
-      est_intRate(input$startYear, input$salary, input$country)
+    if (temp_loanInterest() == 0 | input$customInterest == 'No'){
+      intRate_calc(input$startYear, input$salary, input$country)
     }else{
       temp_loanInterest()
     }
@@ -245,31 +315,47 @@ server <- function(input, output, session) {
     paymentYears_calc(input$startYear, input$gradYear, input$country, input$age)
   })
   
+  salaries <- eventReactive(input$generate,{
+    salaryIncreases(input$salary, input$deductions, input$salaryIncrease, length(paymentYears()))
+  })
+  
   PAYEbalances <- eventReactive(input$generate, {
-    PAYEbalances_calc(input$loan, input$salary-(input$deductions*12), input$country, input$startYear, length(paymentYears()), loanInterest_calc())
+    PAYEbalances_calc(input$loan, salaries(), input$country, input$startYear, length(paymentYears()), input$loanInterest, customInterest = input$customInterest, lumpSum = 0)
   })
   
   PAYEpaid <- eventReactive(input$generate,{
-    PAYEpaid_calc(input$loan, input$salary-(input$deductions*12), input$country, input$startYear, length(paymentYears()), loanInterest_calc())
+    PAYEpaid_calc(input$loan, salaries(), input$country, input$startYear, length(paymentYears()), input$loanInterest, customInterest = input$customInterest, lumpSum = 0)
   })
   
   repayBalances <- eventReactive(input$generate, {
-    PAYEbalances_calc(input$loan, input$salary-(input$deductions*12), input$country, input$startYear, length(paymentYears()), loanInterest_calc(), input$savings)
+    PAYEbalances_calc(input$loan, salaries(), input$country, input$startYear, length(paymentYears()), input$loanInterest, customInterest = input$customInterest, input$savings)
   })
   
   repayPaid <- eventReactive(input$generate, {
-    PAYEpaid_calc(input$loan, input$salary-(input$deductions*12), input$country, input$startYear, length(paymentYears()), loanInterest_calc(), input$savings)
+    PAYEpaid_calc(input$loan, salaries(), input$country, input$startYear, length(paymentYears()), input$loanInterest, customInterest = input$customInterest, input$savings)
   })
   
-  paymentAmount <- eventReactive(input$generate,{
-    payments_calc(input$salary-(input$deductions*12), input$country, input$startYear)
-  })
+  # interestInfo_text <- eventReactive(input$generate, {
+  #   if (input$loanInterest == 0){
+  #     paste('An interest rate of ', loanInterest_calc(), '% has been used for the calculations. This is based on the country you lived in when you took out your loan, the year you started university, and your current salary.', sep = '')
+  #   }else{
+  #     return()
+  #   }
+  # })
   
   interestInfo_text <- eventReactive(input$generate, {
-    if (input$loanInterest == 0){
-      paste('An interest rate of ', loanInterest_calc(), '% has been used for the calculations. This is based on the country you lived in when you took out your loan, the year you started university, and your current salary.', sep = '')
+    if (input$salaryIncrease > 0){
+      if (input$loanInterest == 0 | input$customInterest == 'No'){
+        if (input$country == 'Scotland' | input$startYear < 2012 | input$salary > 46305){
+          paste('A loan interest rate of ', round(loanInterest_calc(), 2), '% has been used for the calculations. This is based on the country you lived in when you took out your loan, the year you started university, and your current salary.', sep = '')
+        }else if (input$salary < 25725 && tail(salaries(), 1) > 25725){
+          paste('Your current loan interest rate is ', round(loanInterest_calc(), 2), '%, but this will increase as you earn more. Your interest rate is calculated based on the country you lived in when you took out your loan, the year you started university, and your current salary.', sep = '')
+        }else if (input$salary > 25725 && input$salary < 46305){
+          paste('Your current loan interest rate is ', round(loanInterest_calc(), 2), '%, but this will increase as you earn more. Your interest rate is calculated based on the country you lived in when you took out your loan, the year you started university, and your current salary.', sep = '')
+        }
+      }
     }else{
-      return()
+      paste('An interest rate of ', round(loanInterest_calc(), 2), '% has been used for the calculations. This is based on the country you lived in when you took out your loan, the year you started university, and your current salary.', sep = '')
     }
   })
   
@@ -297,18 +383,19 @@ server <- function(input, output, session) {
     }
   })
   
+  
   PAYEStats_text <- eventReactive(input$generate, {
     runValidations(input, text = FALSE)
     if (length(PAYEbalances()) > 1){
       if (tail(PAYEbalances(), n=1) > 0) {
-        paste('At your current salary you are not set to pay off your student loan from salary deductions. You will pay £', trim(paymentAmount()/12), ' a month from your paycheque and will pay back £', trim(round(PAYEpaid(),0)), ' before your loan is forgiven.
+        paste('At your current salary you are not set to pay off your student loan from salary deductions. You will pay back £', trim(round(PAYEpaid(),0)), ' before your loan is forgiven.
               However, at the end of the repayment period your outstanding balance of £', trim(round(tail(PAYEbalances(), 1), 0)), ' will be written off, meaning you will never have to pay this back.', sep = '')
       }else if (length(PAYEbalances()) == 2){
         paste('You will pay off your student loan in ', length(PAYEbalances())-1, ' year from salary deductions alone. Over this time period you will pay back £', trim(round(PAYEpaid(), 0)),
               ', meaning you will pay £', trim(round(PAYEpaid()-input$loan, 0)), ' in interest',
               ' (or ', trim(round(PAYEpaid()/input$loan*100-100, 2)), '% of the current loan balance).', sep = '')
       }else{
-        paste('You will pay off your student loan in ', length(PAYEbalances())-1, ' years from salary deductions alone. You will pay £', trim(paymentAmount()/12), ' a month from your paycheque and will pay back £', trim(round(PAYEpaid(), 0)),
+        paste('You will pay off your student loan in ', length(PAYEbalances())-1, ' years from salary deductions alone. You will pay back £', trim(round(PAYEpaid(), 0)),
               ' in total, meaning you will pay £', trim(round(PAYEpaid()-input$loan, 0)), ' in interest',
               ' (or ', trim(round(PAYEpaid()/input$loan*100-100, 2)), '% of the current loan balance).', sep = '')
       }
@@ -333,7 +420,7 @@ server <- function(input, output, session) {
           if (length(repayBalances()) == 2){
             paste('Paying down your student loan means you will pay it off completely in ', length(repayBalances())-1, ' year. However, you will pay a total of £', trim(repayPaid() + input$savings), ', which is £', trim(repayPaid() + input$savings - PAYEpaid()), ' more than if you keep your savings and keep paying from your paycheque!', sep = '')
           }else{
-            paste('Paying down your student loan means you will pay it off completely in ', length(repayBalances())-1, ' year. However, you will pay a total of £', trim(repayPaid() + input$savings), ', which is £', trim(repayPaid() + input$savings - PAYEpaid()), ' more than if you keep your savings and keep paying from your paycheque!', sep = '')
+            paste('Paying down your student loan means you will pay it off completely in ', length(repayBalances())-1, ' years. However, you will pay a total of £', trim(repayPaid() + input$savings), ', which is £', trim(repayPaid() + input$savings - PAYEpaid()), ' more than if you keep your savings and keep paying from your paycheque!', sep = '')
           }
         }else{ # if paying down loan does NOT result in the loan being paid off
           paste('If you pay down your loan using your savings you will still not pay it off from salary deductions, and at the end of the repayment period your outstanding balance of £', trim(tail(repayBalances(), n = 1)), ' will be forgiven. You will pay a total of £', trim(repayPaid() + input$savings), ' which is more than if you keep your savings and keep paying from your paycheque! You simply spent £', trim(input$savings), ' from your savings and then will pay the same amount of money over the repayment period as you would have otherwise.', sep = '')
@@ -357,30 +444,52 @@ server <- function(input, output, session) {
   
   output$info <- eventReactive(input$generate, {
     runValidations(input, text = TRUE)
-    if (input$startYear < input$gradYear){
-      HTML(paste(interestInfo_text(), forgiveText(), sep = '<br><br>'))
-    }
+    HTML(paste(interestInfo_text(), forgiveText(), sep = '<br><br>'))
   })
   
   PAYE_plotData <- eventReactive(input$generate,{
     runValidations(input, text = FALSE)
     data.frame(paymentYears()[0:length(PAYEbalances())], PAYEbalances())
   })
-
+  
   repay_plotData <- eventReactive(input$generate,{
     runValidations(input, text = FALSE)
     data.frame(paymentYears()[0:length(repayBalances())], repayBalances())
   })
-
+  
+  salary_plotData <- eventReactive(input$generate,{
+    runValidations(input, text = FALSE)
+    data.frame(paymentYears()[0:length(salaries())], salaries())
+  })
+  
+  
   PAYE_plot <- eventReactive(input$generate,{
-    if (input$savings == 0){
-      plot(PAYE_plotData(), xlab = "Year", ylab = "Loan Balance (£)", ylim = c(0, ceiling(max(PAYEbalances())/2500)*2500), type = "b")
+    if (input$salaryIncrease > 0 && input$plotSalary == TRUE){
+      if (input$savings == 0){
+        ymax <- (ceiling(max(max(PAYEbalances()), max(salaries())))/2500*2500)
+        plot(PAYE_plotData(), xlab = "Year", ylab = "£", ylim = c(0, ymax*1.3), type = "b", pch = 15)
+        lines(salary_plotData(), col = "blue", type = "b", pch = 16)
+        legend(as.numeric(format(Sys.Date(), "%Y")), ymax*1.3, legend=c("Loan Balance", "Salary"),
+               col=c("black", "blue"), lty=1:2, cex=0.8, pch = c(15, 16))
+      }else{
+        ymax <- (ceiling(max(max(PAYEbalances()), max(salaries())))/2500*2500)
+        plot(PAYE_plotData(), xlab = "Year", ylab = "£", ylim = c(0, ymax*1.3), type = "b", pch = 15)
+        lines(repay_plotData(), col = "red", type = "b", pch = 17)
+        lines(salary_plotData(), col = "blue", type = "b", pch = 16)
+        legend(as.numeric(format(Sys.Date(), "%Y")), ymax*1.25, legend=c("Loan Balance (repayments only)", "Loan Balance (after lump sum)", "Salary"),
+               col=c("black", "red", "blue"), lty=1:2, cex=0.8, pch = c(15, 17, 16))
+      }
+    }else if (input$savings == 0){
+      plot(PAYE_plotData(), xlab = "Year", ylab = "£", ylim = c(0, ceiling(max(PAYEbalances())/2500)*2500*1.3), type = "b", pch = 15)
     }else{
-      plot(PAYE_plotData(), xlab = "Year", ylab = "Loan Balance (£)", ylim = c(0, ceiling(max(PAYEbalances())/2500)*2500), type = "b")
-      lines(repay_plotData(), col = "red", type = "b")
+      ymax <- ceiling(max(PAYEbalances()))/2500*2500
+      plot(PAYE_plotData(), xlab = "Year", ylab = "£", ylim = c(0,ymax*1.3), type = "b", pch = 15)
+      lines(repay_plotData(), col = "red", type = "b", pch = 17)
+      legend(as.numeric(format(Sys.Date(), "%Y")), ymax*1.3, legend=c("Loan Balance (repayments only)", "Loan Balance (after lump sum)"),
+             col=c("black", "red"), lty=1:2, cex=0.8, pch = c(15, 17))
     }
   })
-
+  
   output$PAYEPlot <- renderPlot({
     #runValidations(input, text = FALSE)
     if (length(PAYEbalances()) == 1){
@@ -392,10 +501,18 @@ server <- function(input, output, session) {
   
   output$PAYEStats <- eventReactive(input$generate, {
     runValidations(input, text = FALSE)
-    if (input$savings == 0 | input$savings == input$loan){
-      plotText = 'The plot above shows the balances of your loan as you pay if off from your paycheque, including the effect of interest on your balance.'
+    if (input$plotSalary == FALSE | input$salaryIncrease == 0){
+      if (input$savings == 0 | input$savings == input$loan){
+        plotText = 'The plot above shows the balances of your loan as you pay if off from your paycheque, including the effect of interest on your balance.'
+      }else{
+        plotText = 'The black squares in the plot above show the balances of your loan as you pay if off from your paycheque, including the effect of interest on your balance. The red triangles show your balances if you use your savings to pay down your loan early.'
+      }
     }else{
-      plotText = 'The black points in the plot above show the balances of your loan as you pay if off from your paycheque, including the effect of interest on your balance. The red points show your balances if you use your savings to pay down your loan early.'
+      if (input$savings == 0 | input$savings == input$loan){
+        plotText = 'The black squares in the plot above show the balances of your loan as you pay if off from your paycheque, including the effect of interest on your balance. The blue circles show your predicted salary as it increases over the years.'
+      }else{
+        plotText = 'The black squares in the plot above show the balances of your loan as you pay if off from your paycheque, including the effect of interest on your balance. The red trianges show your balances if you use your savings to pay down your loan early. The blue circles show your predicted salary as it increases over the years.'
+      }
     }
     if (input$savings == 0 && length(PAYEbalances()) > 1) {
       HTML(paste(plotText, PAYEStats_text(), sep='<br/><br/>'))
