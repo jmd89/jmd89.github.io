@@ -335,13 +335,7 @@ server <- function(input, output, session) {
     PAYEpaid_calc(input$loan, salaries(), input$country, input$startYear, length(paymentYears()), input$loanInterest, customInterest = input$customInterest, input$savings)
   })
   
-  # interestInfo_text <- eventReactive(input$generate, {
-  #   if (input$loanInterest == 0){
-  #     paste('An interest rate of ', loanInterest_calc(), '% has been used for the calculations. This is based on the country you lived in when you took out your loan, the year you started university, and your current salary.', sep = '')
-  #   }else{
-  #     return()
-  #   }
-  # })
+  disclaimer_text <- 'This calculator is a working progress. The code is available on <a href="https://github.com/jmd89/jmd89.github.io">GitHub</a> if you would like to see how the calculations are made, and/or if you want to contribute to the project.'
   
   interestInfo_text <- eventReactive(input$generate, {
     if (input$salaryIncrease > 0){
@@ -444,7 +438,7 @@ server <- function(input, output, session) {
   
   output$info <- eventReactive(input$generate, {
     runValidations(input, text = TRUE)
-    HTML(paste(interestInfo_text(), forgiveText(), sep = '<br><br>'))
+    HTML(paste(disclaimer_text, interestInfo_text(), forgiveText(), sep = '<br><br>'))
   })
   
   PAYE_plotData <- eventReactive(input$generate,{
