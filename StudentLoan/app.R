@@ -511,7 +511,7 @@ server <- function(input, output, session) {
       if (input$savings == 0 | input$savings == input$loan){
         plotText = 'The black squares in the plot above show the balances of your loan as you pay if off from your paycheque, including the effect of interest on your balance. The blue circles show your predicted salary as it increases over the years.'
       }else{
-        plotText = 'The black squares in the plot above show the balances of your loan as you pay if off from your paycheque, including the effect of interest on your balance. The red trianges show your balances if you use your savings to pay down your loan early. The blue circles show your predicted salary as it increases over the years.'
+        plotText = 'The black squares in the plot above show the balances of your loan as you pay if off from your paycheque, including the effect of interest on your balance. The red triangles show your balances if you use your savings to pay down your loan early. The blue circles show your predicted salary as it increases over the years.'
       }
     }
     if (input$savings == 0 && length(PAYEbalances()) > 1) {
