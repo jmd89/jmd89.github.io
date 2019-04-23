@@ -8,6 +8,10 @@ h1, h2, h3, h4, h5, h6 {
   font-family: "Open Sans", sans-serif;
 }
 
+h2 {
+    line-height: 42px;
+}
+
 h5 {
     margin-bottom: 36px;
 }
@@ -16,12 +20,24 @@ header {
     margin-bottom: 50px;
 }
 
-p, li {
+p {
+    margin-bottom: 28px;
+}
+
+li {
+    margin-bottom: 14px;
+}
+
+ul {
     margin-bottom: 28px;
 }
 
 .button-container {
     margin-bottom: 48px;
+}
+
+.contents a:hover {
+    color: blue;
 }
 
 a.button {
