@@ -16,13 +16,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-<style>
-body {font-family: "Open Sans", sans-serif; text-align: justify;}
-h1, h2, h3, h4, h5, h6 {
-  font-family: "Open Sans", sans-serif;
-  letter-spacing: 5px;
-}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -39,20 +33,21 @@ h1, h2, h3, h4, h5, h6 {
 
 <!-- Header -->
 <header class="w3-display-container w3-content w3-wide" style="max-width:100%;min-width:100%" id="home">
-  <img class="w3-image" src="hats.jpg" width="1600" height="200">
+  <img class="w3-image" src="hats.jpg">
   </div>
 </header>
 
 <!-- Page content -->
-<div class="w3-content" style="max-width:1100px">
+<div class="w3-content" style="max-width:700px">
 
-      <h1 class="w3-center">Should I Pay Off My Student Loan?</h1>
-      <h5 class="w3-center"><span class="w3-tag w3-wide">ADVICE FOR UK PLAN 1 & PLAN 2 LOANS</span></h5><br>
+      <h1>Should you pay off your student loan?</h1>
+      <h5>Advice for UK Plan 1 & Plan 2 loans</h5>
 
-      <h6 class="w3-center"> <a href="#app">Click here to go straight to the calculator</a></h1>
+      <div class="button-container">
+        <a href="#app" class="button">Go straight to the calculator</a>
+      </div>
 
-      <div class="w3-content w3-padding-large" style="max-width:1100px">
-        <div class="w3-content" style="max-width:700px"><br>
+      <div class="w3-content">
           <p>Student loans are different from almost every other type of debt in a number of ways:</p>
 
           <ul>
@@ -74,10 +69,8 @@ h1, h2, h3, h4, h5, h6 {
           <p>The calculator below allows you to check how long it will take to pay off your student loan (if you are even set to pay it off on your salary), and how much you will pay in total. You can also enter any savings you have that you have been thinking of using to pay down your student loan. You may be surprised at how small a saving this is, or you may even find that you end up paying <b>more</b> than if you keep your savings and use them for something else.
           The calculator gives a snapshot of your loan repayment based on current interest rates and your current salary. It is a good idea to revisit the calculator if your circumstances change.</p><br>
 
-          <p><span class="w3-tag w3-light-grey"><br>Disclaimer: My student loan paid for a degree in Psychology, not Finance. You should always seek advice from a professional when making financial decisions. I created this calculator myself, and to my knowledge it is accurate. You should especially check the rules regarding interest rates and loan forgiveness if you started studying around 2006/2007 and 2011/2012. At the moment the calculator only works for student loans for Scottish, English, and Welsh students, but I hope to add functionality for Northern Irish students in the near future. The calculator also does not apply to loans taken out before 1998.<br><br> If you notice anything wrong please feel free to contact me using the link at the bottom of this page.<br><br></span></p>
-
-        </div>
-      </div><br>
+          <div class="disclaimer w3-light-grey"><h3>Disclaimer</h3><p>My student loan paid for a degree in Psychology, not Finance. You should always seek advice from a professional when making financial decisions. I created this calculator myself, and to my knowledge it is accurate. You should especially check the rules regarding interest rates and loan forgiveness if you started studying around 2006/2007 and 2011/2012. At the moment the calculator only works for student loans for Scottish, English, and Welsh students, but I hope to add functionality for Northern Irish students in the near future. The calculator also does not apply to loans taken out before 1998.</p><p>If you notice anything wrong please feel free to contact me using the link at the bottom of this page.</p>
+      </div>
 
     <div id="app"></div><br><br>
       <iframe id="shiny" src=https://jmd89.shinyapps.io/studentloan/ style="border: none; width: 100%; height: 1200px" frameborder="0"></iframe>
