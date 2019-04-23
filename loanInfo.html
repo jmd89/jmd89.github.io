@@ -5,13 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-<style>
-body {font-family: "Open Sans", sans-serif; text-align: justify;}
-h1, h2, h3, h4, h5, h6 {
-  font-family: "Open Sans", sans-serif;
-  letter-spacing: 5px;
-}
-</style>
+<link rel="stylesheet" href="style.css">
 
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-78415593-3"></script>
@@ -29,37 +23,41 @@ h1, h2, h3, h4, h5, h6 {
 
 <!-- Navbar (sit on top) -->
 <div class="w3-top">
-  <div class="w3-bar w3-white w3-padding w3-card" style="letter-spacing:4px;">
-    <a href="index.html" class="w3-bar-item w3-button">Back to calculator</a>
+  <div class="w3-bar w3-white w3-padding w3-card">
+    <a href="index.html" class="w3-bar-item w3-button">← Back to calculator</a>
     </div>
   </div>
 </div>
 
 <!-- Header -->
 <header class="w3-display-container w3-content w3-wide" style="max-width:100%;min-width:100%" id="home">
-  <img class="w3-image" src="hats.jpg" width="1600" height="200">
-  </div>
+  <img class="w3-image" src="hats.jpg" />
 </header>
 
 <!-- Page content -->
-<div class="w3-content w3-padding-large" style="max-width:1100px">
+<div class="w3-content" style="max-width:700px">
 
-      <h1 class="w3-center">Information about Student Loans</h1>
+      <h1>Information about Student Loans</h1>
 
-      <div class="w3-content" style="max-width:1100px">
-
-        <div class="w3-content" style="max-width:700px"><br>
-
+      <div class="w3-content">
           <p>Different student loans have different rules regarding how much you need to earn before you begin paying back your student loan, what interest rate you are charged, and when your loan is 'forgiven'.
             These rules differ depending on when you took out your student loan, and which country you were a resident of when you took out the loan (i.e. Scotland or England/Wales).</p>
 
-          <p>The calculator automatically figures all of this out for you, but this page summarises the rules. If you notice any mistakes here please <a href="mailto:studentloansiteuk@gmail.com" target="_blank" class="w3-hover-text-green">contact me</a> and I will update this page and the calculator. All information came from <a href="https://www.slc.co.uk/" target = "_blank">Student Loans Company</a> website. For interest rate calculations the calculator uses the new values that come into effect in September 2019 (<a href="https://www.moneysavingexpert.com/news/2019/04/student-loan-interest-rates-to-drop-in-september---what-you-need/amp/" target="_blank" class="w3-hover-text-green">this article on MoneySavingExpert.com summarises the changes</a>).</p><br>
+          <p>The calculator automatically figures all of this out for you, but this page summarises the rules. If you notice any mistakes here please <a href="mailto:studentloansiteuk@gmail.com" target="_blank" class="w3-hover-text-green">contact me</a> and I will update this page and the calculator. All information came from <a href="https://www.slc.co.uk/" class="w3-hover-text-green" target = "_blank">Student Loans Company</a> website. For interest rate calculations the calculator uses the new values that come into effect in September 2019 (<a href="https://www.moneysavingexpert.com/news/2019/04/student-loan-interest-rates-to-drop-in-september---what-you-need/amp/" target="_blank" class="w3-hover-text-green">this article on MoneySavingExpert.com summarises the changes</a>).</p>
 
-          <h4 class="w3-center"><span class="w3-tag w3-wide">What are the different types of student loans?</span></h4>
+          <h3>Contents</h3>
+          <ul>
+            <li><a href="#types-of-loan" class="w3-hover-text-green">What are the different types of student loans?</a></li>
+            <li><a href="#how-much-pay-back" class="w3-hover-text-green">How much of my student loan do I pay back a year?</a></li>
+            <li><a href="#how-much-interest" class="w3-hover-text-green">How much interest am I charged?</a></li>
+            <li><a href="#when-loan-forgiven" class="w3-hover-text-green">When is my loan forgiven?</a></li>
+          </ul>
+
+          <h2 id="types-of-loan">What are the different types of student loans?</h4>
 
           <p>You often hear references of 'Plan 1' and 'Plan 2' loans. You will have a Plan 1 loan if you live in Scotland or took out your loan before the 2012/2013 academic year, otherwise you will have a Plan 2 loan. The interest charged and the forgiveness rules differ between Plan 1 and Plan 2 loans, but there are different forgiveness rules for Scottish and English/Welsh Plan 1 loans as well. The rules are all explained in the following sections, but rather than splitting it by Plan 1 and Plan 2 I will organise by country and start year as I find this easier to understand.</p><br>
 
-          <h4 class="w3-center"><span class="w3-tag w3-wide">How much of my student loan do I pay back a year?</span></h4>
+          <h2 id="how-much-pay-back">How much of my student loan do I pay back a year?</h4>
 
           For all student loans you only start repaying once you pass a certain salary threshold, and you pay 9% of whatever you earn above this threshold.<br><br>
 
@@ -92,7 +90,7 @@ h1, h2, h3, h4, h5, h6 {
           </tr>
         </table><br><br>
 
-        <h4 class="w3-center"><span class="w3-tag w3-wide">How much interest am I charged?</span></h4>
+        <h2 id="how-much-interest">How much interest am I charged?</h4>
         <p>Interest rates are different for Scottish and English/Welsh students, with English/Welsh student loan interest having a sliding scale depending on how much you earn. The example interest provided is assuming no repayments have been made, even though on a £30,0000 salary you would be making repayment and therefore lowering the balance you are paying interest on.</p>
 
         <style type="text/css">
@@ -124,7 +122,7 @@ h1, h2, h3, h4, h5, h6 {
         </tr>
       </table><br><br>
 
-      <h4 class="w3-center"><span class="w3-tag w3-wide">When is my loan forgiven?</span></h4>
+      <h2 id="when-loan-forgiven">When is my loan forgiven?</h4>
       <p>Student loans are 'forgiven' after a certain period of time, meaning repayments stop and the remaining balance never has to be paid back. Try getting that deal on any other loan...</p>
 
       <style type="text/css">
@@ -149,10 +147,7 @@ h1, h2, h3, h4, h5, h6 {
         <td class="tg-0lax">Before 2007/2008:<br>When you turn 65<br><br>Between 2007/2008 and 2012/2013:<br>25 years after graduation<br><br>Since 2012/2013:<br>30 years after graduation</td>
       </tr>
     </table>
-
-
-        </div>
-      </div><br>
+      </div>
 
 <!-- End page content -->
 </div>
