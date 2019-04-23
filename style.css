@@ -4,8 +4,18 @@ body {
     line-height: 28px;
 }
 
+@media (max-width: 700px) {
+    .w3-content {
+        padding: 0 18px;
+    }
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: "Open Sans", sans-serif;
+}
+
+h1 {
+    line-height: 55px;
 }
 
 h2 {
