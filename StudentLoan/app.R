@@ -335,7 +335,7 @@ server <- function(input, output, session) {
     PAYEpaid_calc(input$loan, salaries(), input$country, input$startYear, length(paymentYears()), input$loanInterest, customInterest = input$customInterest, input$savings)
   })
   
-  disclaimer_text <- 'This calculator is a working progress. The code is available on <a href="https://github.com/jmd89/jmd89.github.io">GitHub</a> if you would like to see how the calculations are made, and/or if you want to contribute to the project.'
+  disclaimer_text <- 'This calculator is a work in progress. The code is available on <a href="https://github.com/jmd89/jmd89.github.io">GitHub</a> if you would like to see how the calculations are made, and/or if you want to contribute to the project.'
   
   interestInfo_text <- eventReactive(input$generate, {
     if (input$salaryIncrease > 0){
