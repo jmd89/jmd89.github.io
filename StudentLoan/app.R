@@ -1,7 +1,5 @@
 library(shiny)
 library(shinythemes)
-#setwd('~/Documents/jmd89.github.io/StudentLoan/')
-#source('websiteFunctions.R')
 options(scipen=999)
 
 # Initial values
@@ -14,22 +12,23 @@ startYear = 2014
 gradYear = 2017
 savings = 0
 country = 'England/Wales'
-
-# Functions
+plan1Threshold = 18935
+plan2LowerThreshold = 25725
+plan2UpperThreshold = 46305
 
 ########## Functions
 # Estimate loan interest rate
 intRate_calc <- function(startYear, salary, country){
   if (startYear < 2012 | country == 'Scotland'){ # if Plan 1 loan
     return(1.75)
-  }else{
-    if (salary >= 46305){
-      return(5.4)
+  }else{ # if Plan 2 loan
+    if (salary >= plan2UpperThreshold){ # if salary is above upper threshold
+      return(5.4) # max interest rate
     }else{
-      if (salary < 25725){
-        return(2.4)
+      if (salary < plan2LowerThreshold){ # if salar is below lower threshold
+        return(2.4) # min interest rate
       }else{
-        return(2.4 + ((salary - 25725)/20580 * 3)) # salary minus the threshold as a percentage of the 3% extra
+        return(2.4 + ((salary - plan2LowerThreshold)/(plan2UpperThreshold-plan2LowerThreshold) * 3)) # salary minus the threshold as a percentage of the 3% extra
       }
     }
   }
@@ -40,18 +39,18 @@ payments_calc <- function(salaries, country, startYear){ #increases payments wit
   paymentList <- numeric()
   if (country == 'Scotland' | startYear < 2012){ # if Plan 1 loan
     for (s in salaries){
-      if (s > 18935){
-        paymentList <- c(paymentList, .09*(s-18935))
+      if (s > plan1Threshold){ # if salary is larger than threshold
+        paymentList <- c(paymentList, .09*(s-plan1Threshold)) # payment is 9% of salary above threshold
       }else{
-        paymentList <- c(paymentList, 0)
+        paymentList <- c(paymentList, 0) # otherwise payment is zero
       }
     }
-  }else{
+  }else{ # if Plan 2 loan
     for (s in salaries){
-      if (s > 25725){
-        paymentList <- c(paymentList, .09*(s-25725))
+      if (s > plan2LowerThreshold){ # if salary is larger than threshold
+        paymentList <- c(paymentList, .09*(s-plan2LowerThreshold)) # payment is 9% of salary above threshold
       }else{
-        paymentList <- c(paymentList, 0)
+        paymentList <- c(paymentList, 0) # otherwise payment is zero
       }
     }
   }
@@ -60,13 +59,13 @@ payments_calc <- function(salaries, country, startYear){ #increases payments wit
 
 # Calculate salaries
 salaryIncreases <- function(salary, deductions, increase, nYears){
-  salaryList <- c(salary-deductions*12)
-  currentSalary <- salary
-  deduct <- deductions*12
+  salaryList <- c(salary-deductions*12) # create list of post-deduction salaries
+  currentSalary <- salary # current annual salary without deductions
+  deduct <- deductions*12 # calculate annual salary deductions
   for (i in 1:nYears){
-    deduct <- (1+increase/100)*(deduct)
-    currentSalary <- (1+increase/100)*(currentSalary)
-    salaryList <- c(salaryList, currentSalary-deduct)
+    deduct <- (1+increase/100)*(deduct) # calculate increase in deductions
+    currentSalary <- (1+increase/100)*(currentSalary) # calculate increase in salary
+    salaryList <- c(salaryList, currentSalary-deduct) # add post-deduction salary to list
   }
   return(salaryList)
 }
@@ -89,23 +88,6 @@ paymentYears_calc <- function(startYear, gradYear, country, age){
   }
   return(seq(as.numeric(format(Sys.Date(), "%Y")), as.numeric(format(Sys.Date(), "%Y")) + nYears, 1))
 }
-
-# Calculate balances
-# PAYEbalances_calc <- function(loan, salaries, country, startYear, nYears, interest, lumpSum = 0){
-#   payments <- payments_calc(salaries, country, startYear)
-#   balances <- loan
-#   x <- loan - lumpSum
-#   for (i in 1:nYears){
-#     if (x > payments[i]){
-#       x <- (1+interest/100)*(x - payments[i])
-#       balances <- c(balances, x)
-#     }else{
-#       balances <- c(balances, 0)
-#       return(balances)
-#     }
-#   }
-#   return(balances)
-# }
 
 PAYEbalances_calc <- function(loan, salaries, country, startYear, nYears, interest, customInterest = 'No', lumpSum = 0){
   payments <- payments_calc(salaries, country, startYear)
@@ -340,11 +322,11 @@ server <- function(input, output, session) {
   interestInfo_text <- eventReactive(input$generate, {
     if (input$salaryIncrease > 0){
       if (input$loanInterest == 0 | input$customInterest == 'No'){
-        if (input$country == 'Scotland' | input$startYear < 2012 | input$salary > 46305){
+        if (input$country == 'Scotland' | input$startYear < 2012 | input$salary > plan2UpperThreshold){
           paste('A loan interest rate of ', round(loanInterest_calc(), 2), '% has been used for the calculations. This is based on the country you lived in when you took out your loan, the year you started university, and your current salary.', sep = '')
-        }else if (input$salary < 25725 && tail(salaries(), 1) > 25725){
+        }else if (input$salary < plan2LowerThreshold && tail(salaries(), 1) > plan2LowerThreshold){
           paste('Your current loan interest rate is ', round(loanInterest_calc(), 2), '%, but this will increase as you earn more. Your interest rate is calculated based on the country you lived in when you took out your loan, the year you started university, and your current salary.', sep = '')
-        }else if (input$salary > 25725 && input$salary < 46305){
+        }else if (input$salary > plan2LowerThreshold && input$salary < plan2UpperThreshold){
           paste('Your current loan interest rate is ', round(loanInterest_calc(), 2), '%, but this will increase as you earn more. Your interest rate is calculated based on the country you lived in when you took out your loan, the year you started university, and your current salary.', sep = '')
         }
       }
