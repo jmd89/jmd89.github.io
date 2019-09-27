@@ -2,6 +2,10 @@ library(shiny)
 library(shinythemes)
 options(scipen=999)
 
+plan1Threshold = 18935
+plan2LowerThreshold = 25725
+plan2UpperThreshold = 46305
+
 # Initial values
 age = 24
 salary = 30000
@@ -12,9 +16,6 @@ startYear = 2014
 gradYear = 2017
 savings = 0
 country = 'England/Wales'
-plan1Threshold = 18935
-plan2LowerThreshold = 25725
-plan2UpperThreshold = 46305
 
 ########## Functions
 # Estimate loan interest rate
