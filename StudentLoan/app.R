@@ -21,15 +21,15 @@ country = 'England/Wales'
 # Estimate loan interest rate
 intRate_calc <- function(startYear, salary, country){
   if (startYear < 2012 | country == 'Scotland'){ # if Plan 1 loan
-    return(1.75)
+    return(1.25)
   }else{ # if Plan 2 loan
     if (salary >= plan2UpperThreshold){ # if salary is above upper threshold
-      return(5.4) # max interest rate
+      return(4.5) # max interest rate
     }else{
       if (salary < plan2LowerThreshold){ # if salar is below lower threshold
-        return(2.4) # min interest rate
+        return(1.5) # min interest rate
       }else{
-        return(2.4 + ((salary - plan2LowerThreshold)/(plan2UpperThreshold-plan2LowerThreshold) * 3)) # salary minus the threshold as a percentage of the 3% extra
+        return(1.5 + ((salary - plan2LowerThreshold)/(plan2UpperThreshold-plan2LowerThreshold) * 3)) # salary minus the threshold as a percentage of the 3% extra
       }
     }
   }
